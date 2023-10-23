@@ -2,17 +2,38 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const pgp = require('pg-promise')();
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+const db = pgp(process.env.DATABASE_URL);
+
+db.none('CREATE TABLE IF NOT EXISTS natjecanje ( id serial PRIMARY KEY, naziv_natjecanja TEXT, pobjeda INTEGER, poraz INTEGER, remi INTEGER, osnivac TEXT)')
+  .then(() => {
+    console.log('stvorena tablica');
+  })
+  .catch(() => {
+    console.error('Error executing query:');
+  });
+
+
+db.none('INSERT INTO natjecanje (id, naziv_natjecanja, pobjeda, poraz, remi, osnivac) VALUES (1, "nogomet", 3, 1, 0, "user")')
+  .then(() => {
+    console.log('insert uspijeh');
+  })
+  .catch(() => {
+    console.error('Error executing query:');
+  });
+
+db.one('SELECT * FROM natjecanje')
+  .then(data => {
+    console.log('Data:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
 
 app.use(bodyParser.json());
 
