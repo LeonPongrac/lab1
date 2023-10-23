@@ -8,7 +8,8 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const db = pgp(process.env.DATABASE_URL);
+const db = pgp({connectionString: process.env.DATABASE_URL,
+                ssl: {rejectUnauthorized: false}});
 
 db.none('CREATE TABLE IF NOT EXISTS natjecanje ( id serial PRIMARY KEY, naziv_natjecanja TEXT, pobjeda INTEGER, poraz INTEGER, remi INTEGER, osnivac TEXT)')
   .then(() => {
@@ -18,14 +19,13 @@ db.none('CREATE TABLE IF NOT EXISTS natjecanje ( id serial PRIMARY KEY, naziv_na
     console.error('Error executing query:');
   });
 
-
-db.none('INSERT INTO natjecanje (id, naziv_natjecanja, pobjeda, poraz, remi, osnivac) VALUES (1, "nogomet", 3, 1, 0, "user")')
-  .then(() => {
-    console.log('insert uspijeh');
+/*db.one('INSERT INTO natjecanje(id, naziv_natjecanja, pobjeda, poraz, remi, osnivac) VALUES($1, $2, $3, $4, $5, $6) RETURNING id', [1, 'Nogomet', 3, 1, 0, 'user'])
+  .then(data => {
+      console.log(data.id); // print new user id;
   })
-  .catch(() => {
-    console.error('Error executing query:');
-  });
+  .catch(error => {
+      console.log('ERROR:', error); // print error;
+  });*/
 
 db.one('SELECT * FROM natjecanje')
   .then(data => {
