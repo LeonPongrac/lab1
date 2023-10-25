@@ -1,11 +1,11 @@
 <%- include('partials/header') -%>
 
-<h1 class="text-4xl">Hello World</h1>
+<h1 class="text-4xl">Prijavite se da krenete upisivati natjecanja</h1>
 
 <% if (locals.isAuthenticated) { %>
-    <p>You are logged in. <a href="/profile" class="underline">View your profile</a>.</p>
+    <p>Prijavljeni ste. <a href="/profile" class="underline">View your profile</a>.</p>
 <% } else { %>
-    <p>You are not logged in. <a href="/login" class="underline">Login</a>.</p>
+    <p>Niste prijavljeni. <a href="/login" class="underline">Login</a>.</p>
 <% } %>
 
 <%- include('partials/footer') -%>

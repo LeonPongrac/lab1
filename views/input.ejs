@@ -1,0 +1,19 @@
+<%- include('partials/header') -%>
+
+<body>
+    <h1>Competition Input Form</h1>
+    <form method="POST" action="/input">
+        <label for="competitionName">Competition Name:</label>
+        <input type="text" id="competitionName" name="competitionName" required><br>
+        
+        <label for="participants">Participants (separated by ;):</label>
+        <input type="text" id="participants" name="participants" required><br>
+        
+        <label for="scoringSystem">Scoring System (format: number/number/number):</label>
+        <input type="text" id="scoringSystem" name="scoringSystem" required><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+<%- include('partials/footer') -%>

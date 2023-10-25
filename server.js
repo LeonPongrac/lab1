@@ -18,6 +18,8 @@ app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+app.use(express.urlencoded({ extended: true }));
+
 const config = {
   authRequired: false,
   auth0Logout: true
@@ -56,15 +58,32 @@ app.use(function (err, req, res, next) {
 
 const db = pgp({connectionString: process.env.DATABASE_URL,
                 ssl: {rejectUnauthorized: false}});
+module.exports = db;
 
 
-/*db.none('CREATE TABLE IF NOT EXISTS natjecanje ( id serial PRIMARY KEY, naziv_natjecanja TEXT, pobjeda INTEGER, poraz INTEGER, remi INTEGER, osnivac TEXT)')
+db.none('CREATE TABLE IF NOT EXISTS competitions ( id serial PRIMARY KEY, competition_name VARCHAR(255) NOT NULL, win INTEGER, loss INTEGER, draw INTEGER, email TEXT)')
   .then(() => {
-    console.log('stvorena tablica');
+    console.log('Table competitions created successfully.');
   })
-  .catch(() => {
-    console.error('Error executing query:');
-  });*/
+  .catch(error => {
+    console.log('ERROR:', error);
+  });
+
+db.none('CREATE TABLE IF NOT EXISTS participants ( id serial PRIMARY KEY, participant_name VARCHAR(255) NOT NULL, competition_id INT REFERENCES competitions(id), score INT)')
+  .then(() => {
+    console.log('Table created successfully.');
+  })
+  .catch(error => {
+    console.log('ERROR:', error);
+  });
+
+db.none('CREATE TABLE IF NOT EXISTS scores ( participant1_id INT REFERENCES participants(id), participant2_id INT REFERENCES participants(id), competition_id INT REFERENCES competitions(id), round INT, participantwin_id INT REFERENCES participants(id), PRIMARY KEY (participant1_id, participant2_id, competition_id, round))')
+  .then(() => {
+    console.log('Table created successfully.');
+  })
+  .catch(error => {
+    console.log('ERROR:', error);
+  });
 
 /*db.one('INSERT INTO natjecanje(id, naziv_natjecanja, pobjeda, poraz, remi, osnivac) VALUES($1, $2, $3, $4, $5, $6) RETURNING id', [1, 'Nogomet', 3, 1, 0, 'user'])
   .then(data => {
