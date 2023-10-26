@@ -1,0 +1,37 @@
+<%- include('partials/header') -%>
+
+<h1><%= competitionName %></h1>
+    <h2>Participants:</h2>
+    <ul>
+        <% participants.forEach(participant => { %>
+            <li><%= participant %></li>
+        <% }); %>
+    </ul>
+
+    <% if (editable) { %>
+        <h2>Enter Match Result:</h2>
+        <form action="/submit-result" method="post">
+            <label for="match">Match Number:</label>
+            <input type="number" name="match" required><br>
+            <label for="winner">Winner:</label>
+            <select name="winner" required>
+                <% participants.forEach(participant => { %>
+                    <option value="<%= participant %>"><%= participant %></option>
+                <% }); %>
+            </select><br>
+            <button type="submit">Submit Result</button>
+        </form>
+    <% } %>
+
+    <h2>Match Results:</h2>
+    <ul>
+        <% matches.forEach(match => { %>
+            <li>Match <%= match.match %>: Winner - <%= match.winner %></li>
+        <% }); %>
+    </ul>
+
+    <% if (!editable) { %>
+        <p>This version is read-only.</p>
+    <% } %>
+
+<%- include('partials/footer') -%>

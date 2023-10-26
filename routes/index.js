@@ -100,7 +100,21 @@ router.post('/input', (req, res) => {
         console.error('Error inserting data into the competitions database:', error);
     });
   }
+});
 
+app.get('/competition', (req, res) => {
+  const editable = req.query.editable === 'true';
+  const competitionName = 'Sample Round Robin Competition';
+  const participants = ['Participant 1', 'Participant 2', 'Participant 3', 'Participant 4'];
+  const matches = [];
+  res.render('competition', { competitionName, participants, matches, editable });
+});
+
+app.post('/submit-result', (req, res) => {
+  const { match, winner } = req.body;
+  console.log(match);
+  console.log(winner);
+  res.redirect('/');
 });
 
 module.exports = router;
