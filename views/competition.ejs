@@ -16,6 +16,7 @@
     </p>
     <% if (isOwner) { %>
         <form id="winnerForm" action="/saveWinners" method="post">
+            <input type="hidden" name="score_id" value="<%= score.id %>">
               <label>
                 Select Winner:
                 <select name="winners[<%= score.id %>]">
@@ -40,6 +41,7 @@
     </p>
     <% if (isOwner) { %>
         <form id="winnerForm" action="/saveWinners" method="post">
+            <input type="hidden" name="score_id" value="<%= score.id %>">
             <label>
               Select Winner:
               <select name="winners[<%= score.id %>]">
@@ -64,6 +66,7 @@
     </p>
     <% if (isOwner) { %>
         <form id="winnerForm" action="/saveWinners" method="post">
+            <input type="hidden" name="score_id" value="<%= score.id %>">
             <label>
               Select Winner:
               <select name="winners[<%= score.id %>]">

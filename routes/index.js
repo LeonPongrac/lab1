@@ -91,24 +91,36 @@ router.get('/competition/:competition_id', async (req, res) => {
   }
 });
 
-router.post('/saveWinners', (req, res) => {
+router.post('/saveWinners', async (req, res) => {
+  const scoreId = req.body.score_id;
+  console.log('scoreId', scoreId);
   const winners = req.body.winners;
-  const promises = [];
+  console.log('winners', winners[0]);
 
-  for (const matchId in winners) {
-      const winnerId = winners[matchId];
-      // Assuming there is a table called 'matches' with columns 'id' and 'winner_id'
-      promises.push(db.none('UPDATE matches SET participantwin_id = $1 WHERE id = $2', [winnerId, matchId]));
+  const competition_id = await db.one('UPDATE scores SET participantwin_id = $1 WHERE id = $2 RETURNING competition_id', [winners[0], scoreId]);
+  console.log('scoreId', competition_id.competition_id);
+
+  let isOwner = false;
+
+  userProfile = JSON.stringify(req.oidc.user, null, 2)
+
+  try {
+    const [competition_data, participant_data, scores_data] = await Promise.all([
+      db.any('SELECT * FROM competitions WHERE id = $1', [competition_id.competition_id]),
+      db.any('SELECT * FROM participants WHERE competition_id = $1', [competition_id.competition_id]),
+      db.any('SELECT * FROM scores WHERE competition_id = $1', [competition_id.competition_id])
+    ]);
+
+    if (userProfile != undefined) {
+      const userProfileObject = JSON.parse(userProfile);
+      if (competition_data[0].email == userProfileObject.email) { isOwner = true;}
+    }
+
+    res.render('competition', { competition_data, participant_data, scores_data, isOwner });
+  } catch (error) {
+    console.log('ERROR:', error);
+    res.status(500).send('Internal Server Error');
   }
-
-  Promise.all(promises)
-      .then(() => {
-          res.send('Winners saved successfully!');
-      })
-      .catch(error => {
-          console.error('Error saving winners:', error);
-          res.status(500).send('Error occurred while saving winners.');
-      });
 });
 
 module.exports = router;
