@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npm run clean",
+    "clean": "rm -rf dist",
     "start": "node server.js"
   },
   "keywords": [],
