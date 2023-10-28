@@ -6,6 +6,8 @@ const path = require('path');
 const router = require('./routes/index');
 const { auth } = require('express-openid-connect');
 const pgp = require('pg-promise')();
+const https = require('https'); 
+const fs = require('fs');
 
 dotenv.config();
 
@@ -20,17 +22,21 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+const externalUrl = process.env.RENDER_EXTERNAL_URL;
+
+const port = externalUrl && process.env.PORT ? parseInt(process.env.PORT) : 4080;
+
 const config = {
   authRequired: false,
+  baseURL: externalUrl || `https://localhost:${port}`,
   auth0Logout: true
 };
 
-const port = process.env.PORT || 3000;
-if (!config.baseURL && !process.env.BASE_URL && process.env.PORT && process.env.NODE_ENV !== 'production') {
-  config.baseURL = `http://localhost:${port}`;
-}
-
 app.use(auth(config));
+
+/*if (!config.baseURL && !process.env.BASE_URL && process.env.PORT && process.env.NODE_ENV !== 'production') {
+  config.baseURL = `http://localhost:${port}`;
+}*/
 
 // Middleware to make the `user` object available for all views
 app.use(function (req, res, next) {
@@ -108,7 +114,21 @@ db.none('DROP TABLE IF EXISTS competitions')
     console.log('ERROR:', error);
   });
 */
-    http.createServer(app)
-    .listen(port, () => {
-      console.log(`Listening on ${config.baseURL}`);
+    
+
+if (externalUrl) {
+    const hostname = '0.0.0.0'; //ne 127.0.0.1
+    app.listen(port, hostname, () => {
+      console.log(`Server locally running at http://${hostname}:${port}/ and from
+      outside on ${externalUrl}`);
     });
+  }
+else {
+  https.createServer({
+    key: fs.readFileSync('server.key'),
+    cert: fs.readFileSync('server.cert')
+    }, app)
+    .listen(port, function () {
+      console.log(`Server running at https://localhost:${port}/`);
+    });
+  }
