@@ -15,10 +15,17 @@ router.get('/', function (req, res, next) {
   });
 });
 
-router.get('/profile', requiresAuth(), function (req, res, next) {
+router.get('/profile', requiresAuth(), async function (req, res, next) {
+
+  userProfile = JSON.stringify(req.oidc.user, null, 2)
+  const userProfileObject = JSON.parse(userProfile);
+
+  const competitions = await db.any('SELECT * FROM competitions WHERE email = $1', [userProfileObject.email]);  
+
   res.render('profile', {
     userProfile: JSON.stringify(req.oidc.user, null, 2),
-    title: 'Profile page'
+    title: 'Profile page',
+    competitions,
   });
 });
 
@@ -59,7 +66,7 @@ router.post('/input', async (req, res) => {
     await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[3], competition_id, 3]);
     await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[2], competition_id, 3]);
 
-    res.redirect('/');
+    res.redirect('/competition/' + competition_id);
   } catch (error) {
     console.error('Error inserting data:', error);
     res.status(500).send('Internal Server Error');
@@ -93,34 +100,14 @@ router.get('/competition/:competition_id', async (req, res) => {
 
 router.post('/saveWinners', async (req, res) => {
   const scoreId = req.body.score_id;
-  console.log('scoreId', scoreId);
   const winners = req.body.winners;
-  console.log('winners', winners[0]);
-
-  const competition_id = await db.one('UPDATE scores SET participantwin_id = $1 WHERE id = $2 RETURNING competition_id', [winners[0], scoreId]);
-  console.log('scoreId', competition_id.competition_id);
-
-  let isOwner = false;
-
-  userProfile = JSON.stringify(req.oidc.user, null, 2)
-
-  try {
-    const [competition_data, participant_data, scores_data] = await Promise.all([
-      db.any('SELECT * FROM competitions WHERE id = $1', [competition_id.competition_id]),
-      db.any('SELECT * FROM participants WHERE competition_id = $1', [competition_id.competition_id]),
-      db.any('SELECT * FROM scores WHERE competition_id = $1', [competition_id.competition_id])
-    ]);
-
-    if (userProfile != undefined) {
-      const userProfileObject = JSON.parse(userProfile);
-      if (competition_data[0].email == userProfileObject.email) { isOwner = true;}
-    }
-
-    res.render('competition', { competition_data, participant_data, scores_data, isOwner });
-  } catch (error) {
-    console.log('ERROR:', error);
-    res.status(500).send('Internal Server Error');
-  }
+  const competition_id_data = await db.one('UPDATE scores SET participantwin_id = $1 WHERE id = $2 RETURNING competition_id', [winners[0], scoreId]);
+  const competition_id = competition_id_data.competition_id;
+  const winscore = await db.one('SELECT win FROM competitions WHERE id = $1', [competition_id]);
+  const participantscore = await db.one('SELECT score FROM participants WHERE id = $1', [winners[0]]);
+  participantscore.score += winscore.win;
+  await db.none('UPDATE participants SET score = $1 WHERE id = $2', [participantscore.score, winners[0]])
+  res.redirect('/competition/' + competition_id);
 });
 
 module.exports = router;

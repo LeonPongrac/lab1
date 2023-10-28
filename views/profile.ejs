@@ -5,12 +5,17 @@
   <% if (user.picture) { %>
     <img class="block py-3" src="<%= user.picture %>" width="300">
   <% } %>
-  
-  <p class="py-3">
-    This is the content of <code class="bg-gray-200">req.user</code>.<br>
-    <strong>Note:</strong> <code class="bg-gray-200">_raw</code> and <code class="bg-gray-200">_json</code> properties have been omitted.
-  </p>
 
-  <pre class="block bg-gray-300 p-4 text-sm overflow-scroll"><%= userProfile %></pre>
+  <p class="py-3">
+    Your competitions:
+    <ul>
+      <% competitions.forEach(function(competition) { %>
+        <li>
+          link: <a href="/competition/<%= competition.id %>"><strong><%= competition.competition_name %></strong></a>
+        </li>
+      <% }); %>
+    </ul>
+
+  </p>
 
 <%- include('partials/footer') -%>

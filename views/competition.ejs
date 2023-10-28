@@ -2,83 +2,91 @@
 
 <h><%= competition_data.competition_name %></h>
 
-<h1>Matches</h1>
+<div class="row" align-content: flex-start>
+    <div class="col-sm-4">
+        <h1>Matches</h1>
 
-<h2>Round 1</h2>
-<% scores_data.forEach(function(score) { %>
-  <% if (score.round === 1) { %>   
-    <p>
-      <%= getParticipantName(score.participant1_id) %> 
-       |
-      <%= getParticipantName(score.participant2_id) %>
-     , winner:
-      <%= getWinParticipantName(score.participantwin_id) %>
-    </p>
-    <% if (isOwner) { %>
-        <form id="winnerForm" action="/saveWinners" method="post">
-            <input type="hidden" name="score_id" value="<%= score.id %>">
-              <label>
-                Select Winner:
-                <select name="winners[<%= score.id %>]">
-                  <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                  <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
-                </select>
-              </label>
-          <button type="submit">Submit Winners</button>
-        </form>
-      <% } %>
-<% }}); %>
+        <h2>Round 1</h2>
+        <% scores_data.forEach(function(score) { %>
+        <% if (score.round === 1) { %>   
+            <p>
+            <%= getParticipantName(score.participant1_id) %> 
+            |
+            <%= getParticipantName(score.participant2_id) %>
+            , winner:
+            <%= getWinParticipantName(score.participantwin_id) %>
+            </p>
+            <% if (isOwner) { %>
+                <form id="winnerForm" action="/saveWinners" method="post">
+                    <input type="hidden" name="score_id" value="<%= score.id %>">
+                    <label>
+                        Select Winner:
+                        <select name="winners[<%= score.id %>]">
+                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+                        </select>
+                    </label>
+                <button type="submit">Submit Winners</button>
+                </form>
+            <% } %>
+        <% }}); %>
 
-<h2>Round 2</h2>
-<% scores_data.forEach(function(score) { %>
-  <% if (score.round === 2) { %>   
-    <p>
-      <%= getParticipantName(score.participant1_id) %> 
-       |
-      <%= getParticipantName(score.participant2_id) %>
-     , winner:
-      <%= getWinParticipantName(score.participantwin_id) %>
-    </p>
-    <% if (isOwner) { %>
-        <form id="winnerForm" action="/saveWinners" method="post">
-            <input type="hidden" name="score_id" value="<%= score.id %>">
-            <label>
-              Select Winner:
-              <select name="winners[<%= score.id %>]">
-                <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
-              </select>
-            </label>
-        <button type="submit">Submit Winners</button>
-      </form>
-      <% } %>
-<% }}); %>
+        <h2>Round 2</h2>
+        <% scores_data.forEach(function(score) { %>
+        <% if (score.round === 2) { %>   
+            <p>
+            <%= getParticipantName(score.participant1_id) %> 
+            |
+            <%= getParticipantName(score.participant2_id) %>
+            , winner:
+            <%= getWinParticipantName(score.participantwin_id) %>
+            </p>
+            <% if (isOwner) { %>
+                <form id="winnerForm" action="/saveWinners" method="post">
+                    <input type="hidden" name="score_id" value="<%= score.id %>">
+                    <label>
+                    Select Winner:
+                    <select name="winners[<%= score.id %>]">
+                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+                    </select>
+                    </label>
+                <button type="submit">Submit Winners</button>
+            </form>
+            <% } %>
+        <% }}); %>
 
-<h2>Round 3</h2>
-<% scores_data.forEach(function(score) { %>
-  <% if (score.round === 3) { %>   
-    <p>
-      <%= getParticipantName(score.participant1_id) %> 
-       |
-      <%= getParticipantName(score.participant2_id) %>
-     , winner:
-      <%= getWinParticipantName(score.participantwin_id) %>
-    </p>
-    <% if (isOwner) { %>
-        <form id="winnerForm" action="/saveWinners" method="post">
-            <input type="hidden" name="score_id" value="<%= score.id %>">
-            <label>
-              Select Winner:
-              <select name="winners[<%= score.id %>]">
-                <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
-              </select>
-            </label>
-        <button type="submit">Submit Winners</button>
-      </form>
-      <% } %>
-<% }}); %>
-
+        <h2>Round 3</h2>
+        <% scores_data.forEach(function(score) { %>
+        <% if (score.round === 3) { %>   
+            <p>
+            <%= getParticipantName(score.participant1_id) %> 
+            |
+            <%= getParticipantName(score.participant2_id) %>
+            , winner:
+            <%= getWinParticipantName(score.participantwin_id) %>
+            </p>
+            <% if (isOwner) { %>
+                <form id="winnerForm" action="/saveWinners" method="post">
+                    <input type="hidden" name="score_id" value="<%= score.id %>">
+                    <label>
+                    Select Winner:
+                    <select name="winners[<%= score.id %>]">
+                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+                    </select>
+                    </label>
+                <button type="submit">Submit Winners</button>
+            </form>
+            <% } %>
+        <% }}); %>
+    </div>
+    <div class="col-sm-4">
+        <div class="well">
+            <h3>Look I'm A Sidebar!</h3>
+        </div>
+        </div>
+</div>
 <% function getParticipantName(participantId) {
     var participant = participant_data.find(function(participant) {
       return participant.id === participantId;
