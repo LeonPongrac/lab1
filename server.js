@@ -58,7 +58,6 @@ app.use(function (err, req, res, next) {
 
 const db = pgp({connectionString: process.env.DATABASE_URL,
                 ssl: {rejectUnauthorized: false}});
-module.exports = db;
 
 
 db.none('CREATE TABLE IF NOT EXISTS competitions ( id serial PRIMARY KEY, competition_name VARCHAR(255) NOT NULL, win INTEGER, loss INTEGER, draw INTEGER, email TEXT)')
@@ -77,30 +76,39 @@ db.none('CREATE TABLE IF NOT EXISTS participants ( id serial PRIMARY KEY, partic
     console.log('ERROR:', error);
   });
 
-db.none('CREATE TABLE IF NOT EXISTS scores ( participant1_id INT REFERENCES participants(id), participant2_id INT REFERENCES participants(id), competition_id INT REFERENCES competitions(id), round INT, participantwin_id INT REFERENCES participants(id), PRIMARY KEY (participant1_id, participant2_id, competition_id, round))')
+db.none('CREATE TABLE IF NOT EXISTS scores ( id serial PRIMARY KEY, participant1_id INT REFERENCES participants(id), participant2_id INT REFERENCES participants(id), competition_id INT REFERENCES competitions(id), round INT, participantwin_id INT REFERENCES participants(id))')
   .then(() => {
     console.log('Table created successfully.');
   })
   .catch(error => {
     console.log('ERROR:', error);
   });
-
-/*db.one('INSERT INTO natjecanje(id, naziv_natjecanja, pobjeda, poraz, remi, osnivac) VALUES($1, $2, $3, $4, $5, $6) RETURNING id', [1, 'Nogomet', 3, 1, 0, 'user'])
-  .then(data => {
-      console.log(data.id); // print new user id;
+/*
+db.none('DROP TABLE IF EXISTS scores')
+  .then(() => {
+    console.log('Table scores deleted successfully.');
   })
   .catch(error => {
-      console.log('ERROR:', error); // print error;
-  });*/
-/*db.one('SELECT * FROM natjecanje')
-  .then(data => {
-    console.log('Data:', data);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });*/
-
-  http.createServer(app)
-  .listen(port, () => {
-    console.log(`Listening on ${config.baseURL}`);
+    console.log('ERROR:', error);
   });
+
+db.none('DROP TABLE IF EXISTS participants')
+  .then(() => {
+    console.log('Table participants deleted successfully.');
+  })
+  .catch(error => {
+    console.log('ERROR:', error);
+  });
+
+db.none('DROP TABLE IF EXISTS competitions')
+  .then(() => {
+    console.log('Table competitions deleted successfully.');
+  })
+  .catch(error => {
+    console.log('ERROR:', error);
+  });
+*/
+    http.createServer(app)
+    .listen(port, () => {
+      console.log(`Listening on ${config.baseURL}`);
+    });

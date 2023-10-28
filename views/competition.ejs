@@ -1,37 +1,93 @@
 <%- include('partials/header') -%>
 
-<h1><%= competitionName %></h1>
-    <h2>Participants:</h2>
-    <ul>
-        <% participants.forEach(participant => { %>
-            <li><%= participant %></li>
-        <% }); %>
-    </ul>
+<h><%= competition_data.competition_name %></h>
 
-    <% if (editable) { %>
-        <h2>Enter Match Result:</h2>
-        <form action="/submit-result" method="post">
-            <label for="match">Match Number:</label>
-            <input type="number" name="match" required><br>
-            <label for="winner">Winner:</label>
-            <select name="winner" required>
-                <% participants.forEach(participant => { %>
-                    <option value="<%= participant %>"><%= participant %></option>
-                <% }); %>
-            </select><br>
-            <button type="submit">Submit Result</button>
+<h1>Matches</h1>
+
+<h2>Round 1</h2>
+<% scores_data.forEach(function(score) { %>
+  <% if (score.round === 1) { %>   
+    <p>
+      <%= getParticipantName(score.participant1_id) %> 
+       |
+      <%= getParticipantName(score.participant2_id) %>
+     , winner:
+      <%= getWinParticipantName(score.participantwin_id) %>
+    </p>
+    <% if (isOwner) { %>
+        <form id="winnerForm" action="/saveWinners" method="post">
+              <label>
+                Select Winner:
+                <select name="winners[<%= score.id %>]">
+                  <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                  <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+                </select>
+              </label>
+          <button type="submit">Submit Winners</button>
         </form>
-    <% } %>
+      <% } %>
+<% }}); %>
 
-    <h2>Match Results:</h2>
-    <ul>
-        <% matches.forEach(match => { %>
-            <li>Match <%= match.match %>: Winner - <%= match.winner %></li>
-        <% }); %>
-    </ul>
+<h2>Round 2</h2>
+<% scores_data.forEach(function(score) { %>
+  <% if (score.round === 2) { %>   
+    <p>
+      <%= getParticipantName(score.participant1_id) %> 
+       |
+      <%= getParticipantName(score.participant2_id) %>
+     , winner:
+      <%= getWinParticipantName(score.participantwin_id) %>
+    </p>
+    <% if (isOwner) { %>
+        <form id="winnerForm" action="/saveWinners" method="post">
+            <label>
+              Select Winner:
+              <select name="winners[<%= score.id %>]">
+                <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+              </select>
+            </label>
+        <button type="submit">Submit Winners</button>
+      </form>
+      <% } %>
+<% }}); %>
 
-    <% if (!editable) { %>
-        <p>This version is read-only.</p>
-    <% } %>
+<h2>Round 3</h2>
+<% scores_data.forEach(function(score) { %>
+  <% if (score.round === 3) { %>   
+    <p>
+      <%= getParticipantName(score.participant1_id) %> 
+       |
+      <%= getParticipantName(score.participant2_id) %>
+     , winner:
+      <%= getWinParticipantName(score.participantwin_id) %>
+    </p>
+    <% if (isOwner) { %>
+        <form id="winnerForm" action="/saveWinners" method="post">
+            <label>
+              Select Winner:
+              <select name="winners[<%= score.id %>]">
+                <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
+                <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+              </select>
+            </label>
+        <button type="submit">Submit Winners</button>
+      </form>
+      <% } %>
+<% }}); %>
+
+<% function getParticipantName(participantId) {
+    var participant = participant_data.find(function(participant) {
+      return participant.id === participantId;
+    });
+    return participant ? participant.participant_name : 'Participant Not Found';
+  } %>
+
+<% function getWinParticipantName(participantId) {
+var participant = participant_data.find(function(participant) {
+    return participant.id === participantId;
+});
+return participant ? participant.participant_name : 'Not played';
+} %>
 
 <%- include('partials/footer') -%>

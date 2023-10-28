@@ -1,6 +1,12 @@
 var router = require('express').Router();
 const { requiresAuth } = require('express-openid-connect');
-const db = require('./db');
+const pgp = require('pg-promise')();
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const db = pgp({connectionString: process.env.DATABASE_URL,
+  ssl: {rejectUnauthorized: false}});
 
 router.get('/', function (req, res, next) {
   res.render('index', {
@@ -22,99 +28,87 @@ router.get('/input', requiresAuth(), function (req, res, next) {
   });
 });
 
-router.post('/input', (req, res) => {
+router.post('/input', async (req, res) => {
+  try {
+    console.log('Form Data Received:', req.body);
 
-  console.log('Form Data Received:', req.body);
-
-  const competitionName = req.body.competitionName;
-  const participants = req.body.participants.split(';').map(participant => participant.trim());
-  const scoringSystem = req.body.scoringSystem.split('/').map(score => parseInt(score.trim()));
-  competition_id, participants_id;
-
-  // Do something with the competition data, e.g., save it to a database
-  userProfile = JSON.stringify(req.oidc.user, null, 2)
-  console.log('Form Data Received:', userProfile);
-
-  db.one('INSERT INTO competitions (competition_name, win, loss, draw, email) VALUES ($1, $2, $3, $4, $5) RETURNING id', [competitionName, scoringSystem[0], scoringSystem[1], scoringSystem[2], userProfile.email])
-    .then(data => {
-      competition_id = data.id;
-      console.log(data.id);
-    })
-    .catch(error => {
-      console.error('Error inserting data into the competitions database:', error);
-    });
+    const competitionName = req.body.competitionName;
+    const participants = req.body.participants.split(';').map(participant => participant.trim());
+    const scoringSystem = req.body.scoringSystem.split('/').map(score => parseInt(score.trim()));
   
-  for (let index = 0; index < participants.length; index++) {
-    const participantName = participants[index];
-    db.one('INSERT INTO participants (participant_name, competition_id) VALUES ($1, $2) RETURNING id', [participantName, competition_id])
-      .then(data => {
-        participants_id[index] = data.id;
-        console.log(data.id);
-      })
-      .catch(error => {
-        console.error('Error inserting data into the participants database:', error);
-      });
-  }
+    // Do something with the competition data, e.g., save it to a database
+    userProfile = JSON.stringify(req.oidc.user, null, 2)
+    const userProfileObject = JSON.parse(userProfile);
+    console.log('Form Data Received:', userProfileObject);
+  
+    console.log(competitionName, scoringSystem[0], scoringSystem[1], scoringSystem[2], userProfileObject.email);
 
-  if (participants.length == 4) {
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[1], competition_id, 1])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-      });
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[2], participants_id[3], competition_id, 1])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-      });
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[2], competition_id, 2])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-      });
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[3], competition_id, 2])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-      });
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[3], competition_id, 3])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-      });
-    db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[2], competition_id, 3])
-      .then(() => {
-        console.log('Score added');
-      })
-      .catch(error => {
-        console.error('Error inserting data into the competitions database:', error);
-    });
+    const competitionData = await db.one('INSERT INTO competitions (competition_name, win, loss, draw, email) VALUES ($1, $2, $3, $4, $5) RETURNING id', [competitionName, scoringSystem[0], scoringSystem[1], scoringSystem[2], userProfileObject.email]);
+    const competition_id = competitionData.id;
+
+    const participants_id = [];
+    for (let index = 0; index < participants.length; index++) {
+      const participantName = participants[index];
+      const participantData = await db.one('INSERT INTO participants (participant_name, competition_id) VALUES ($1, $2) RETURNING id', [participantName, competition_id]);
+      participants_id[index] = participantData.id;
+    }   
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[1], competition_id, 1]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[2], participants_id[3], competition_id, 1]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[2], competition_id, 2]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[3], competition_id, 2]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[3], competition_id, 3]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[2], competition_id, 3]);
+
+    res.redirect('/');
+  } catch (error) {
+    console.error('Error inserting data:', error);
+    res.status(500).send('Internal Server Error');
   }
 });
 
-app.get('/competition', (req, res) => {
-  const editable = req.query.editable === 'true';
-  const competitionName = 'Sample Round Robin Competition';
-  const participants = ['Participant 1', 'Participant 2', 'Participant 3', 'Participant 4'];
-  const matches = [];
-  res.render('competition', { competitionName, participants, matches, editable });
+router.get('/competition/:competition_id', async (req, res) => {
+  const competition_id = req.params.competition_id;
+  let isOwner = false;
+
+  userProfile = JSON.stringify(req.oidc.user, null, 2)
+
+  try {
+    const [competition_data, participant_data, scores_data] = await Promise.all([
+      db.any('SELECT * FROM competitions WHERE id = $1', [competition_id]),
+      db.any('SELECT * FROM participants WHERE competition_id = $1', [competition_id]),
+      db.any('SELECT * FROM scores WHERE competition_id = $1', [competition_id])
+    ]);
+
+    if (userProfile != undefined) {
+      const userProfileObject = JSON.parse(userProfile);
+      if (competition_data[0].email == userProfileObject.email) { isOwner = true;}
+    }
+
+    res.render('competition', { competition_data, participant_data, scores_data, isOwner });
+  } catch (error) {
+    console.log('ERROR:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
-app.post('/submit-result', (req, res) => {
-  const { match, winner } = req.body;
-  console.log(match);
-  console.log(winner);
-  res.redirect('/');
+router.post('/saveWinners', (req, res) => {
+  const winners = req.body.winners;
+  const promises = [];
+
+  for (const matchId in winners) {
+      const winnerId = winners[matchId];
+      // Assuming there is a table called 'matches' with columns 'id' and 'winner_id'
+      promises.push(db.none('UPDATE matches SET participantwin_id = $1 WHERE id = $2', [winnerId, matchId]));
+  }
+
+  Promise.all(promises)
+      .then(() => {
+          res.send('Winners saved successfully!');
+      })
+      .catch(error => {
+          console.error('Error saving winners:', error);
+          res.status(500).send('Error occurred while saving winners.');
+      });
 });
 
 module.exports = router;
