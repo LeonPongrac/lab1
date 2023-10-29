@@ -42,8 +42,15 @@ router.post('/input', async (req, res) => {
     const competitionName = req.body.competitionName;
     const participants = req.body.participants.split(';').map(participant => participant.trim());
     const scoringSystem = req.body.scoringSystem.split('/').map(score => parseInt(score.trim()));
+
+    if (participants.length !== 4) {
+      throw new Error('Only 4 participants allowed');
+    }
+
+    if (scoringSystem.length !== 3) {
+      throw new Error('Wrong format');
+    }
   
-    // Do something with the competition data, e.g., save it to a database
     userProfile = JSON.stringify(req.oidc.user, null, 2)
     const userProfileObject = JSON.parse(userProfile);
     console.log('Form Data Received:', userProfileObject);
@@ -69,7 +76,7 @@ router.post('/input', async (req, res) => {
     res.redirect('/competition/' + competition_id);
   } catch (error) {
     console.error('Error inserting data:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Wrong input');
   }
 });
 
