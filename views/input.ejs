@@ -1,6 +1,15 @@
 <%- include('partials/header') -%>
 
 <style>
+    Iform {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     form {
         background-color: #ffffff;
         padding: 20px;
@@ -46,7 +55,7 @@
     }
 </style>
 
-<body>
+<body class="Iform">
     <h1>Competition Input Form</h1>
     <form method="POST" action="/input">
         <label for="competitionName">Competition Name:</label>
