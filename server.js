@@ -82,7 +82,7 @@ db.none('CREATE TABLE IF NOT EXISTS participants ( id serial PRIMARY KEY, partic
     console.log('ERROR:', error);
   });
 
-db.none('CREATE TABLE IF NOT EXISTS scores ( id serial PRIMARY KEY, participant1_id INT REFERENCES participants(id), participant2_id INT REFERENCES participants(id), competition_id INT REFERENCES competitions(id), round INT, participantwin_id INT REFERENCES participants(id))')
+  db.none('CREATE TABLE IF NOT EXISTS scores ( id serial PRIMARY KEY, participant1_id INT REFERENCES participants(id), participant2_id INT REFERENCES participants(id), competition_id INT REFERENCES competitions(id), round INT, participantwin_id INT REFERENCES participants(id), draw boolean, is_finished boolean)')
   .then(() => {
     console.log('Table created successfully.');
   })
