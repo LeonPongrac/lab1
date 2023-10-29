@@ -56,15 +56,15 @@ router.post('/input', async (req, res) => {
     const participants_id = [];
     for (let index = 0; index < participants.length; index++) {
       const participantName = participants[index];
-      const participantData = await db.one('INSERT INTO participants (participant_name, competition_id) VALUES ($1, $2) RETURNING id', [participantName, competition_id]);
+      const participantData = await db.one('INSERT INTO participants (participant_name, competition_id, score) VALUES ($1, $2, $3) RETURNING id', [participantName, competition_id, 0]);
       participants_id[index] = participantData.id;
     }   
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[1], competition_id, 1]);
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[2], participants_id[3], competition_id, 1]);
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[2], competition_id, 2]);
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[3], competition_id, 2]);
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[0], participants_id[3], competition_id, 3]);
-    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round) VALUES ($1, $2, $3, $4)', [participants_id[1], participants_id[2], competition_id, 3]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[0], participants_id[1], competition_id, 1, false, false]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[2], participants_id[3], competition_id, 1, false, false]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[0], participants_id[2], competition_id, 2, false, false]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[1], participants_id[3], competition_id, 2, false, false]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[0], participants_id[3], competition_id, 3, false, false]);
+    await db.none('INSERT INTO scores (participant1_id, participant2_id, competition_id, round, draw, is_finished) VALUES ($1, $2, $3, $4, $5, $6)', [participants_id[1], participants_id[2], competition_id, 3, false, false]);
 
     res.redirect('/competition/' + competition_id);
   } catch (error) {
@@ -86,6 +86,16 @@ router.get('/competition/:competition_id', async (req, res) => {
       db.any('SELECT * FROM scores WHERE competition_id = $1', [competition_id])
     ]);
 
+    console.log(scores_data);
+
+    participant_data.sort(function(a, b) {
+      return b.score - a.score;
+    });
+
+    participant_data.forEach(function(participant, index) {
+      participant.rank = index + 1;
+    });
+
     if (userProfile != undefined) {
       const userProfileObject = JSON.parse(userProfile);
       if (competition_data[0].email == userProfileObject.email) { isOwner = true;}
@@ -98,15 +108,43 @@ router.get('/competition/:competition_id', async (req, res) => {
   }
 });
 
-router.post('/saveWinners', async (req, res) => {
+router.post('/saveResult', async (req, res) => {
   const scoreId = req.body.score_id;
-  const winners = req.body.winners;
-  const competition_id_data = await db.one('UPDATE scores SET participantwin_id = $1 WHERE id = $2 RETURNING competition_id', [winners[0], scoreId]);
-  const competition_id = competition_id_data.competition_id;
-  const winscore = await db.one('SELECT win FROM competitions WHERE id = $1', [competition_id]);
-  const participantscore = await db.one('SELECT score FROM participants WHERE id = $1', [winners[0]]);
-  participantscore.score += winscore.win;
-  await db.none('UPDATE participants SET score = $1 WHERE id = $2', [participantscore.score, winners[0]])
+  const result = req.body.result;
+  let competition_id_data;
+  await db.none('UPDATE scores SET is_finished = $1 WHERE id = $2', [true, scoreId]);
+  if (result == -1)
+  {
+    competition_id_data = await db.one('UPDATE scores SET draw = $1 WHERE id = $2 RETURNING competition_id', [true, scoreId]);
+    const competition_id = competition_id_data.competition_id;
+    const score = await db.one('SELECT draw FROM competitions WHERE id = $1', [competition_id]);
+    console.log('Draw add score =' + score);
+    const participants_data = await db.any('SELECT participant1_id, participant2_id FROM scores WHERE id = $1', [scoreId]);
+    const participants = participants_data[0];
+
+    const participantscore1 = await db.one('SELECT score FROM participants WHERE id = $1', [participants.participant1_id]);
+    console.log('participantscore1 before = ' + participantscore1);
+    participantscore1.score += score.draw;
+    console.log('participantscore1 after = ' + participantscore1);
+    await db.none('UPDATE participants SET score = $1 WHERE id = $2', [participantscore1.score, participants.participant1_id])
+
+    const participantscore2 = await db.one('SELECT score FROM participants WHERE id = $1', [participants.participant2_id]);
+    console.log('participantscore2 before = ' + participantscore2);
+    participantscore2.score += score.draw;
+    console.log('participantscore2 after = ' + participantscore1);
+    await db.none('UPDATE participants SET score = $1 WHERE id = $2', [participantscore2.score, participants.participant2_id])
+  }
+  else
+  {
+    competition_id_data = await db.one('UPDATE scores SET participantwin_id = $1 WHERE id = $2 RETURNING *', [result, scoreId]);
+    console.log('competition_id_data = ' + competition_id_data);
+    const competition_id = competition_id_data.competition_id;
+    const winscore = await db.one('SELECT win FROM competitions WHERE id = $1', [competition_id]);
+    const participantscore = await db.one('SELECT score FROM participants WHERE id = $1', [result]);
+    participantscore.score += winscore.win;
+    await db.none('UPDATE participants SET score = $1 WHERE id = $2', [participantscore.score, result])
+  }
+  let competition_id = competition_id_data.competition_id;
   res.redirect('/competition/' + competition_id);
 });
 

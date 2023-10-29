@@ -14,20 +14,23 @@
             |
             <%= getParticipantName(score.participant2_id) %>
             , winner:
-            <%= getWinParticipantName(score.participantwin_id) %>
+            <%= getWinParticipantName(score.participantwin_id, score.draw) %>
             </p>
             <% if (isOwner) { %>
-                <form id="winnerForm" action="/saveWinners" method="post">
-                    <input type="hidden" name="score_id" value="<%= score.id %>">
-                    <label>
-                        Select Winner:
-                        <select name="winners[<%= score.id %>]">
-                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
+                <% if (score.is_finished === false) { %>
+                    <form id="resultForm" action="/saveResult" method="post">
+                        <input type="hidden" name="score_id" value="<%= score.id %>">
+                        <label>
+                        Select result:
+                        <select name="result">
+                            <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %> won</option>
+                            <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %> won</option>
+                            <option value= -1 >Draw</option>
                         </select>
-                    </label>
-                <button type="submit">Submit Winners</button>
-                </form>
+                        </label>
+                    <button type="submit">Submit result</button>
+                    </form>
+                <% } %>
             <% } %>
         <% }}); %>
 
@@ -39,20 +42,23 @@
             |
             <%= getParticipantName(score.participant2_id) %>
             , winner:
-            <%= getWinParticipantName(score.participantwin_id) %>
+            <%= getWinParticipantName(score.participantwin_id, score.draw) %>
             </p>
             <% if (isOwner) { %>
-                <form id="winnerForm" action="/saveWinners" method="post">
-                    <input type="hidden" name="score_id" value="<%= score.id %>">
-                    <label>
-                    Select Winner:
-                    <select name="winners[<%= score.id %>]">
-                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
-                    </select>
-                    </label>
-                <button type="submit">Submit Winners</button>
-            </form>
+                <% if (score.is_finished === false) { %>
+                    <form id="resultForm" action="/saveResult" method="post">
+                        <input type="hidden" name="score_id" value="<%= score.id %>">
+                        <label>
+                        Select result:
+                        <select name="result">
+                            <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %> won</option>
+                            <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %> won</option>
+                            <option value= -1 >Draw</option>
+                        </select>
+                        </label>
+                    <button type="submit">Submit result</button>
+                    </form>
+                <% } %>
             <% } %>
         <% }}); %>
 
@@ -64,26 +70,34 @@
             |
             <%= getParticipantName(score.participant2_id) %>
             , winner:
-            <%= getWinParticipantName(score.participantwin_id) %>
+            <%= getWinParticipantName(score.participantwin_id, score.draw) %>
             </p>
             <% if (isOwner) { %>
-                <form id="winnerForm" action="/saveWinners" method="post">
-                    <input type="hidden" name="score_id" value="<%= score.id %>">
-                    <label>
-                    Select Winner:
-                    <select name="winners[<%= score.id %>]">
-                        <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %></option>
-                        <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %></option>
-                    </select>
-                    </label>
-                <button type="submit">Submit Winners</button>
-            </form>
+                <% if (score.is_finished === false) { %>
+                    <form id="resultForm" action="/saveResult" method="post">
+                        <input type="hidden" name="score_id" value="<%= score.id %>">
+                        <label>
+                        Select result:
+                        <select name="result">
+                            <option value="<%= score.participant1_id %>"><%= getParticipantName(score.participant1_id) %> won</option>
+                            <option value="<%= score.participant2_id %>"><%= getParticipantName(score.participant2_id) %> won</option>
+                            <option value= -1 >Draw</option>
+                        </select>
+                        </label>
+                    <button type="submit">Submit result</button>
+                    </form>
+                <% } %>
             <% } %>
         <% }}); %>
     </div>
     <div class="col-sm-4">
         <div class="well">
-            <h3>Look I'm A Sidebar!</h3>
+            <h1>Leaderboard</h1>
+                <ul>
+                <% participant_data.forEach(function(participant) { %>
+                    <li>Rank <%= participant.rank %>: <%= participant.participant_name %> - <%= participant.score %></li>
+                <% }); %>
+                </ul>
         </div>
         </div>
 </div>
@@ -94,11 +108,15 @@
     return participant ? participant.participant_name : 'Participant Not Found';
   } %>
 
-<% function getWinParticipantName(participantId) {
-var participant = participant_data.find(function(participant) {
-    return participant.id === participantId;
-});
-return participant ? participant.participant_name : 'Not played';
+<% function getWinParticipantName(participantId, draw) {
+    if(draw === true) {
+        return 'Draw';
+    } else {
+        var participant = participant_data.find(function(participant) {
+            return participant.id === participantId;
+        });
+        return participant ? participant.participant_name : 'Not played';
+    }
 } %>
 
 <%- include('partials/footer') -%>
